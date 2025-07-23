@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
 import { nanoid } from 'nanoid';
 
 export interface Usuario {
@@ -37,48 +37,82 @@ export interface EstadisticasUsuario {
   ordenes_total: number;
 }
 
-// Claves para KV storage
+// Claves para Redis
 const USERS_KEY = 'gaming:usuarios';
 const ORDERS_KEY = 'gaming:ordenes';
 const CONFIG_KEY = 'gaming:config';
+
+// Cliente Redis global para reutilizar conexiones
+let redis: any = null;
+
+/**
+ * Conecta a Redis si no está conectado
+ */
+async function getRedisClient() {
+  if (!redis) {
+    try {
+      redis = createClient({
+        url: process.env.REDIS_URL || process.env.KV_URL
+      });
+      
+      redis.on('error', (err: any) => {
+        console.error('Redis Client Error:', err);
+      });
+      
+      await redis.connect();
+      console.log('✅ Redis conectado exitosamente');
+    } catch (error) {
+      console.error('❌ Error conectando a Redis:', error);
+      throw error;
+    }
+  }
+  return redis;
+}
 
 /**
  * Inicializa la configuración si no existe
  */
 async function inicializarConfiguracion() {
-  const config = await kv.get(CONFIG_KEY);
+  const client = await getRedisClient();
+  const config = await client.get(CONFIG_KEY);
+  
   if (!config) {
     const nuevaConfig = {
       version: '2.0',
       creado: new Date().toISOString(),
       ultima_actualizacion: new Date().toISOString()
     };
-    await kv.set(CONFIG_KEY, nuevaConfig);
+    await client.set(CONFIG_KEY, JSON.stringify(nuevaConfig));
     return nuevaConfig;
   }
-  return config;
+  return JSON.parse(config);
 }
 
 /**
  * Actualiza el timestamp de última actualización
  */
 async function actualizarConfiguracion() {
-  const config = await kv.get(CONFIG_KEY) || {};
+  const client = await getRedisClient();
+  const configStr = await client.get(CONFIG_KEY);
+  const config = configStr ? JSON.parse(configStr) : {};
+  
   const nuevaConfig = {
     ...config,
     ultima_actualizacion: new Date().toISOString()
   };
-  await kv.set(CONFIG_KEY, nuevaConfig);
+  
+  await client.set(CONFIG_KEY, JSON.stringify(nuevaConfig));
   return nuevaConfig;
 }
 
 /**
- * Carga todos los usuarios desde KV
+ * Carga todos los usuarios desde Redis
  */
 async function cargarUsuarios(): Promise<Usuario[]> {
   try {
-    const usuarios = await kv.get<Usuario[]>(USERS_KEY);
-    return usuarios || [];
+    const client = await getRedisClient();
+    const usuarios = await client.get(USERS_KEY);
+    return usuarios ? JSON.parse(usuarios) : [];
   } catch (error) {
     console.error('Error al cargar usuarios:', error);
     return [];
@@ -86,11 +120,12 @@ async function cargarUsuarios(): Promise<Usuario[]> {
 }
 
 /**
- * Guarda todos los usuarios en KV
+ * Guarda todos los usuarios en Redis
  */
 async function guardarUsuarios(usuarios: Usuario[]): Promise<boolean> {
   try {
-    await kv.set(USERS_KEY, usuarios);
+    const client = await getRedisClient();
+    await client.set(USERS_KEY, JSON.stringify(usuarios));
     await actualizarConfiguracion();
     return true;
   } catch (error) {
@@ -100,12 +135,13 @@ async function guardarUsuarios(usuarios: Usuario[]): Promise<boolean> {
 }
 
 /**
- * Carga todas las órdenes desde KV
+ * Carga todas las órdenes desde Redis
  */
 async function cargarOrdenes(): Promise<Orden[]> {
   try {
-    const ordenes = await kv.get<Orden[]>(ORDERS_KEY);
-    return ordenes || [];
+    const client = await getRedisClient();
+    const ordenes = await client.get(ORDERS_KEY);
+    return ordenes ? JSON.parse(ordenes) : [];
   } catch (error) {
     console.error('Error al cargar órdenes:', error);
     return [];
@@ -113,11 +149,12 @@ async function cargarOrdenes(): Promise<Orden[]> {
 }
 
 /**
- * Guarda todas las órdenes en KV
+ * Guarda todas las órdenes en Redis
  */
 async function guardarOrdenes(ordenes: Orden[]): Promise<boolean> {
   try {
-    await kv.set(ORDERS_KEY, ordenes);
+    const client = await getRedisClient();
+    await client.set(ORDERS_KEY, JSON.stringify(ordenes));
     await actualizarConfiguracion();
     return true;
   } catch (error) {
