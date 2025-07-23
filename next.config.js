@@ -1,12 +1,20 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   images: {
     unoptimized: true
   },
-  swcMinify: false,
-  experimental: {
-    optimizePackageImports: ['@headlessui/react', '@heroicons/react']
+  webpack: (config, { isServer }) => {
+    // Excluir archivos de datos del build
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    }
+    
+    // Ignorar archivos de datos durante el build
+    config.watchOptions = {
+      ignored: ['**/data/**', '**/node_modules/**']
+    }
+    
+    return config
   }
 }
 
