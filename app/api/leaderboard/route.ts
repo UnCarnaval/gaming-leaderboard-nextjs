@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const periodo = searchParams.get('periodo') as 'dia' | 'semana' | 'mes' | 'total' || 'total';
     
-    const leaderboard = obtenerLeaderboardPorPeriodo(periodo);
+    const leaderboard = await obtenerLeaderboardPorPeriodo(periodo);
     
     return NextResponse.json(leaderboard);
   } catch (error) {

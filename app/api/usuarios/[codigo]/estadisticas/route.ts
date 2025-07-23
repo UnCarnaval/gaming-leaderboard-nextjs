@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const estadisticas = obtenerEstadisticasUsuario(codigo);
+    const estadisticas = await obtenerEstadisticasUsuario(codigo);
     
     if (!estadisticas) {
       return NextResponse.json(

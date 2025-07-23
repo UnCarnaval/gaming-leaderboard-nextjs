@@ -1,182 +1,162 @@
 # 🎮 Gaming Leaderboard
 
-Sistema de leaderboard gaming moderno con ranking de órdenes por períodos, construido con **Next.js 14** y **Tailwind CSS** para deployment en **Vercel**.
-
-![Gaming Leaderboard](https://img.shields.io/badge/Next.js-14.0-black?style=for-the-badge&logo=nextdotjs)
-![TailwindCSS](https://img.shields.io/badge/Tailwind-3.3-blue?style=for-the-badge&logo=tailwindcss)
-![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=for-the-badge&logo=vercel)
+Sistema de leaderboard gaming moderno construido con **Next.js 14**, **TypeScript**, **Tailwind CSS** y **Vercel KV**.
 
 ## ✨ Características
 
-- **🏆 Ranking en tiempo real** - Leaderboard dinámico con posiciones
-- **📊 Períodos múltiples** - Diario, semanal, mensual y total
-- **🔗 Links personalizados** - Cada usuario tiene su URL única
-- **⚡ Súper rápido** - Optimizado para Vercel y Edge Runtime
-- **📱 Responsive** - Funciona perfecto en móviles y desktop
-- **🎨 Tema gaming** - Diseño con efectos de neón y partículas
-- **🎮 UX moderna** - Interfaz intuitiva estilo videojuego
+- 🏆 **Ranking dinámico** por períodos (diario, semanal, mensual, total)
+- 👥 **Panel de administración** para gestión de usuarios
+- 🎯 **Paneles personales** para cada usuario
+- 📱 **Diseño responsive** con tema gaming
+- ⚡ **Tiempo real** - actualizaciones instantáneas
+- 🔒 **Persistencia segura** con Vercel KV
+- 🚀 **Optimizado** para deployment en Vercel
+
+## 🛠️ Tecnologías
+
+- **Frontend**: Next.js 14 (App Router), React, TypeScript
+- **Styling**: Tailwind CSS con tema gaming personalizado
+- **Database**: Vercel KV (Redis)
+- **Deployment**: Vercel
+- **Icons**: Emojis y efectos CSS personalizados
 
 ## 🚀 Deployment en Vercel
 
-### Opción 1: Deploy automático desde GitHub
-
-1. **Fork este repositorio** en tu cuenta de GitHub
-2. **Conecta tu GitHub con Vercel**:
-   - Ve a [vercel.com](https://vercel.com)
-   - Click en "New Project"
-   - Importa tu repositorio
-   - Click "Deploy"
-
-### Opción 2: Deploy desde CLI
-
+### 1. **Crear proyecto en Vercel**
 ```bash
-# Instalar Vercel CLI
-npm i -g vercel
-
-# Hacer login
-vercel login
-
-# Deploy
-vercel --prod
+# Conecta tu repositorio de GitHub a Vercel
+# Vercel detectará automáticamente que es un proyecto Next.js
 ```
 
-### Configuración automática
-No necesitas configuración extra. Vercel detecta automáticamente Next.js y configura todo.
+### 2. **Configurar Vercel KV**
 
-## 🛠️ Desarrollo Local
+1. En tu dashboard de Vercel:
+   - Ve a tu proyecto → **Storage** tab
+   - Click **Create Database** → **KV**
+   - Dale un nombre: `gaming-leaderboard-db`
 
-### Prerrequisitos
-- **Node.js 18+**
-- **npm** o **yarn**
+2. Vercel generará automáticamente las variables de entorno:
+   - `KV_REST_API_URL`
+   - `KV_REST_API_TOKEN`
 
-### Instalación
-
+### 3. **Deploy**
 ```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/gaming-leaderboard
-cd gaming-leaderboard
+git push origin main
+# Vercel auto-deployará tu aplicación
+```
 
-# Instalar dependencias
+### 4. **Verificar funcionamiento**
+- ✅ Página principal: rankings funcionando
+- ✅ Admin panel: `/admin` - registro de usuarios
+- ✅ Paneles usuario: `/user/[codigo]` - sumar/restar puntos
+
+## 💻 Desarrollo Local (Opcional)
+
+Si quieres correr localmente necesitas configurar Vercel KV:
+
+### 1. **Clonar repositorio**
+```bash
+git clone https://github.com/UnCarnaval/gaming-leaderboard-nextjs.git
+cd gaming-leaderboard-nextjs
 npm install
-
-# Ejecutar en desarrollo
-npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000) para ver la aplicación.
-
-### Scripts disponibles
-
+### 2. **Configurar variables de entorno**
 ```bash
-npm run dev      # Desarrollo
-npm run build    # Build para producción
-npm run start    # Servidor producción
-npm run lint     # Linter
+# Copia el archivo de ejemplo
+cp .env.example .env.local
+
+# Edita .env.local con tus credenciales de Vercel KV
+KV_REST_API_URL=your_kv_rest_api_url
+KV_REST_API_TOKEN=your_kv_rest_api_token
 ```
 
-## 📖 Cómo usar
-
-### Para Administradores
-
-1. **Ve a `/admin`** para registrar usuarios
-2. **Cada usuario recibe un código único** automáticamente
-3. **Comparte el link personal** con cada usuario
-4. **Monitorea el leaderboard** desde la página principal
-
-### Para Usuarios
-
-1. **Accede a tu link personal**: `tuapp.vercel.app/user/tucodigo123`
-2. **Botón 🔼**: Suma una orden completada (+1 punto)
-3. **Botón 🔽**: Resta si te equivocaste (-1 punto)
-4. **Ve tus estadísticas** y posición en tiempo real
-
-## 🏗️ Arquitectura
-
-```
-📁 gaming-leaderboard/
-├── 📁 app/                 # App Router (Next.js 14)
-│   ├── layout.tsx         # Layout principal
-│   ├── page.tsx           # Leaderboard principal
-│   ├── globals.css        # Estilos gaming
-│   ├── admin/page.tsx     # Panel administrativo
-│   └── user/[codigo]/     # Páginas dinámicas usuarios
-├── 📁 lib/
-│   └── utils.ts           # Lógica de negocio
-├── 📁 components/         # Componentes React (futuro)
-├── package.json           # Dependencias
-├── tailwind.config.js     # Configuración Tailwind
-└── vercel.json           # Configuración Vercel
+### 3. **Ejecutar localmente**
+```bash
+npm run dev
+# Abre http://localhost:3000
 ```
 
-## 🎯 URLs de la aplicación
+## 📖 Guía de Uso
 
-- **Leaderboard principal**: `/`
-- **Panel admin**: `/admin`
-- **Panel usuario**: `/user/[codigo]`
+### **Para Administradores:**
 
-### Ejemplos de URLs:
-- `https://tuapp.vercel.app/`
-- `https://tuapp.vercel.app/admin`
-- `https://tuapp.vercel.app/user/juan123`
+1. **Registrar usuarios**: Ve a `/admin`
+2. **Crear usuario**: Ingresa nombre, sistema genera código único
+3. **Compartir links**: Cada usuario recibe su link personal
+4. **Monitorear**: Ver estadísticas y rankings en tiempo real
+
+### **Para Usuarios:**
+
+1. **Acceder**: Usa tu link personal `/user/tu-codigo`
+2. **Sumar puntos**: 🔼 cuando completes una orden
+3. **Restar puntos**: 🔽 solo para corregir errores
+4. **Ver ranking**: Compite en el leaderboard global
+
+## 📊 Estructura de la Aplicación
+
+```
+app/
+├── page.tsx              # 🏠 Leaderboard principal
+├── admin/page.tsx        # ⚙️ Panel de administración  
+├── user/[codigo]/page.tsx # 👤 Panel personal de usuario
+└── api/                  # 🔌 API Routes
+    ├── leaderboard/      # Rankings
+    ├── usuarios/         # Gestión de usuarios
+    └── puntos/           # Actualización de puntos
+
+lib/
+├── utils.ts              # 🛠️ Utilidades del cliente
+└── data-server.ts        # 💾 Lógica del servidor + KV
+
+data-server.ts funciones:
+- obtenerLeaderboard()
+- registrarUsuario()
+- actualizarPuntosPorCodigo()
+- obtenerEstadisticasUsuario()
+```
 
 ## 🎨 Personalización
 
-### Colores gaming
-Edita `tailwind.config.js` para cambiar la paleta:
-
-```js
-colors: {
-  primary: { /* azules */ },
-  gold: { /* dorados */ },
-  silver: { /* plateados */ }
-}
+### **Modificar tema gaming:**
+```css
+/* app/globals.css */
+.gaming-header { /* Títulos principales */ }
+.leaderboard-card { /* Tarjetas de contenido */ }
+.btn-primary { /* Botones principales */ }
+.particles-bg { /* Fondo con partículas */ }
 ```
 
-### Estilos personalizados
-Modifica `app/globals.css` para ajustar efectos y animaciones.
+### **Ajustar períodos:**
+```typescript
+// lib/data-server.ts
+// Personaliza obtenerLeaderboardPorPeriodo()
+// para calcular períodos reales basados en fechas
+```
 
-## 🔧 Características técnicas
+## 🔧 Solución de Problemas
 
-- **Framework**: Next.js 14 con App Router
-- **Estilos**: Tailwind CSS 3.3
-- **Fuentes**: Orbitron (gaming) + Exo 2 (texto)
-- **Almacenamiento**: En memoria (demo) - expandible a DB
-- **Deployment**: Vercel Edge Runtime
-- **Performance**: Optimizado para Core Web Vitals
+### **Error: "Usuario no se guarda"**
+- ✅ **Solución**: Configurar Vercel KV correctamente
+- Variables `KV_REST_API_URL` y `KV_REST_API_TOKEN` necesarias
 
-## 📊 Sistema de períodos
+### **Build falla**
+```bash
+# Limpiar caché
+rm -rf .next
+npm run build
+```
 
-- **Diario**: Órdenes de hoy
-- **Semanal**: Últimos 7 días
-- **Mensual**: Últimos 30 días  
-- **Total**: Todas las órdenes históricas
-
-## 🚀 Próximas características
-
-- [ ] Base de datos persistente (Supabase/PlanetScale)
-- [ ] Autenticación de usuarios
-- [ ] Notificaciones push
-- [ ] API REST completa
-- [ ] Dashboard avanzado
-- [ ] Exportación de datos
-- [ ] Modo oscuro/claro
-
-## 🐛 Reportar problemas
-
-Si encuentras algún bug o tienes sugerencias:
-
-1. Ve a la pestaña **Issues** 
-2. Click en **New Issue**
-3. Describe el problema detalladamente
+### **Datos no persisten**
+- ✅ **En Vercel**: Usa Vercel KV (incluido)
+- ❌ **En localhost sin KV**: Los datos se perderán
 
 ## 📄 Licencia
 
-MIT License - Úsalo libremente en tus proyectos.
-
-## 👨‍💻 Autor
-
-Creado con ❤️ para la comunidad gaming.
+Proyecto de demostración - Sistema Gaming Leaderboard v2.0
 
 ---
 
-**¡Happy coding! 🎮✨** 
+**🎮 ¡Listo para competir!** Deploy en Vercel y empieza a trackear tus órdenes gaming.
+
+Para soporte: [Crear issue en GitHub](https://github.com/UnCarnaval/gaming-leaderboard-nextjs/issues) 

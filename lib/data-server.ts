@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+import { kv } from '@vercel/kv';
 import { nanoid } from 'nanoid';
 
 export interface Usuario {
@@ -38,80 +37,91 @@ export interface EstadisticasUsuario {
   ordenes_total: number;
 }
 
-// Ruta del archivo de datos
-const DATA_FILE = path.join(process.cwd(), 'data', 'leaderboard.json');
+// Claves para KV storage
+const USERS_KEY = 'gaming:usuarios';
+const ORDERS_KEY = 'gaming:ordenes';
+const CONFIG_KEY = 'gaming:config';
 
 /**
- * Inicializa la estructura de datos si no existe
+ * Inicializa la configuración si no existe
  */
-function inicializarDatos(): DataStructure {
-  return {
-    usuarios: [],
-    ordenes: [],
-    configuracion: {
+async function inicializarConfiguracion() {
+  const config = await kv.get(CONFIG_KEY);
+  if (!config) {
+    const nuevaConfig = {
       version: '2.0',
       creado: new Date().toISOString(),
       ultima_actualizacion: new Date().toISOString()
-    }
-  };
+    };
+    await kv.set(CONFIG_KEY, nuevaConfig);
+    return nuevaConfig;
+  }
+  return config;
 }
 
 /**
- * Carga los datos desde el archivo JSON
+ * Actualiza el timestamp de última actualización
  */
-export function cargarDatos(): DataStructure {
+async function actualizarConfiguracion() {
+  const config = await kv.get(CONFIG_KEY) || {};
+  const nuevaConfig = {
+    ...config,
+    ultima_actualizacion: new Date().toISOString()
+  };
+  await kv.set(CONFIG_KEY, nuevaConfig);
+  return nuevaConfig;
+}
+
+/**
+ * Carga todos los usuarios desde KV
+ */
+async function cargarUsuarios(): Promise<Usuario[]> {
   try {
-    // Crear directorio si no existe
-    const dataDir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    // Si no existe el archivo, crear uno nuevo
-    if (!fs.existsSync(DATA_FILE)) {
-      const datosIniciales = inicializarDatos();
-      guardarDatos(datosIniciales);
-      return datosIniciales;
-    }
-
-    // Leer y parsear el archivo
-    const contenido = fs.readFileSync(DATA_FILE, 'utf8');
-    const datos = JSON.parse(contenido) as DataStructure;
-    
-    // Validar estructura básica
-    if (!datos.usuarios || !datos.ordenes || !datos.configuracion) {
-      console.warn('Estructura de datos inválida, reinicializando...');
-      return inicializarDatos();
-    }
-
-    return datos;
+    const usuarios = await kv.get<Usuario[]>(USERS_KEY);
+    return usuarios || [];
   } catch (error) {
-    console.error('Error al cargar datos:', error);
-    return inicializarDatos();
+    console.error('Error al cargar usuarios:', error);
+    return [];
   }
 }
 
 /**
- * Guarda los datos en el archivo JSON
+ * Guarda todos los usuarios en KV
  */
-export function guardarDatos(datos: DataStructure): boolean {
+async function guardarUsuarios(usuarios: Usuario[]): Promise<boolean> {
   try {
-    // Actualizar timestamp
-    datos.configuracion.ultima_actualizacion = new Date().toISOString();
-    
-    // Crear directorio si no existe
-    const dataDir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    // Escribir archivo con formato bonito
-    const contenido = JSON.stringify(datos, null, 2);
-    fs.writeFileSync(DATA_FILE, contenido, 'utf8');
-    
+    await kv.set(USERS_KEY, usuarios);
+    await actualizarConfiguracion();
     return true;
   } catch (error) {
-    console.error('Error al guardar datos:', error);
+    console.error('Error al guardar usuarios:', error);
+    return false;
+  }
+}
+
+/**
+ * Carga todas las órdenes desde KV
+ */
+async function cargarOrdenes(): Promise<Orden[]> {
+  try {
+    const ordenes = await kv.get<Orden[]>(ORDERS_KEY);
+    return ordenes || [];
+  } catch (error) {
+    console.error('Error al cargar órdenes:', error);
+    return [];
+  }
+}
+
+/**
+ * Guarda todas las órdenes en KV
+ */
+async function guardarOrdenes(ordenes: Orden[]): Promise<boolean> {
+  try {
+    await kv.set(ORDERS_KEY, ordenes);
+    await actualizarConfiguracion();
+    return true;
+  } catch (error) {
+    console.error('Error al guardar órdenes:', error);
     return false;
   }
 }
@@ -133,31 +143,42 @@ function generarId(): string {
 /**
  * Obtiene el leaderboard general ordenado por puntos
  */
-export function obtenerLeaderboard(): Usuario[] {
-  const datos = cargarDatos();
-  return datos.usuarios.sort((a, b) => b.puntos - a.puntos);
+export async function obtenerLeaderboard(): Promise<Usuario[]> {
+  try {
+    const usuarios = await cargarUsuarios();
+    return usuarios.sort((a, b) => b.puntos - a.puntos);
+  } catch (error) {
+    console.error('Error al obtener leaderboard:', error);
+    return [];
+  }
 }
 
 /**
  * Obtiene leaderboard por período (simplificado para demo)
  */
-export function obtenerLeaderboardPorPeriodo(periodo: 'dia' | 'semana' | 'mes' | 'total'): Usuario[] {
-  const datos = cargarDatos();
-  
-  // Para esta demo, retornamos el mismo ranking total
-  // En producción, aquí filtrarías por fechas según el período
-  return datos.usuarios.sort((a, b) => b.puntos - a.puntos);
+export async function obtenerLeaderboardPorPeriodo(periodo: 'dia' | 'semana' | 'mes' | 'total'): Promise<Usuario[]> {
+  try {
+    const usuarios = await cargarUsuarios();
+    
+    // Para esta demo, retornamos el mismo ranking total
+    // En producción, aquí filtrarías por fechas según el período
+    return usuarios.sort((a, b) => b.puntos - a.puntos);
+  } catch (error) {
+    console.error('Error al obtener leaderboard por período:', error);
+    return [];
+  }
 }
 
 /**
  * Registra un nuevo usuario
  */
-export function registrarUsuario(nombre: string): { success: boolean; message: string; codigo_usuario?: string } {
+export async function registrarUsuario(nombre: string): Promise<{ success: boolean; message: string; codigo_usuario?: string }> {
   try {
-    const datos = cargarDatos();
+    await inicializarConfiguracion();
+    const usuarios = await cargarUsuarios();
     
     // Validar que no exista usuario con el mismo nombre
-    const usuarioExistente = datos.usuarios.find(u => u.nombre.toLowerCase() === nombre.toLowerCase());
+    const usuarioExistente = usuarios.find(u => u.nombre.toLowerCase() === nombre.toLowerCase());
     if (usuarioExistente) {
       return { success: false, message: 'Ya existe un usuario con ese nombre' };
     }
@@ -174,11 +195,12 @@ export function registrarUsuario(nombre: string): { success: boolean; message: s
     };
 
     // Agregar usuario
-    datos.usuarios.push(nuevoUsuario);
+    usuarios.push(nuevoUsuario);
     
     // Guardar cambios
-    if (!guardarDatos(datos)) {
-      return { success: false, message: 'Error al guardar el usuario' };
+    const guardado = await guardarUsuarios(usuarios);
+    if (!guardado) {
+      return { success: false, message: 'Error al guardar el usuario en la base de datos' };
     }
 
     return { 
@@ -196,15 +218,18 @@ export function registrarUsuario(nombre: string): { success: boolean; message: s
 /**
  * Actualiza puntos de un usuario por su código
  */
-export function actualizarPuntosPorCodigo(codigoUsuario: string, operacion: 'suma' | 'resta'): { success: boolean; message: string; puntos?: number } {
+export async function actualizarPuntosPorCodigo(codigoUsuario: string, operacion: 'suma' | 'resta'): Promise<{ success: boolean; message: string; puntos?: number }> {
   try {
-    const datos = cargarDatos();
+    const usuarios = await cargarUsuarios();
+    const ordenes = await cargarOrdenes();
     
     // Buscar usuario
-    const usuario = datos.usuarios.find(u => u.codigo_usuario === codigoUsuario);
-    if (!usuario) {
+    const usuarioIndex = usuarios.findIndex(u => u.codigo_usuario === codigoUsuario);
+    if (usuarioIndex === -1) {
       return { success: false, message: 'Usuario no encontrado' };
     }
+
+    const usuario = usuarios[usuarioIndex];
 
     // Actualizar puntos
     if (operacion === 'suma') {
@@ -225,11 +250,14 @@ export function actualizarPuntosPorCodigo(codigoUsuario: string, operacion: 'sum
       fecha: new Date().toISOString()
     };
 
-    datos.ordenes.push(nuevaOrden);
+    ordenes.push(nuevaOrden);
 
     // Guardar cambios
-    if (!guardarDatos(datos)) {
-      return { success: false, message: 'Error al guardar los cambios' };
+    const usuarioGuardado = await guardarUsuarios(usuarios);
+    const ordenGuardada = await guardarOrdenes(ordenes);
+    
+    if (!usuarioGuardado || !ordenGuardada) {
+      return { success: false, message: 'Error al guardar los cambios en la base de datos' };
     }
 
     return { 
@@ -247,10 +275,10 @@ export function actualizarPuntosPorCodigo(codigoUsuario: string, operacion: 'sum
 /**
  * Obtiene un usuario por su código
  */
-export function obtenerUsuarioPorCodigo(codigoUsuario: string): Usuario | null {
+export async function obtenerUsuarioPorCodigo(codigoUsuario: string): Promise<Usuario | null> {
   try {
-    const datos = cargarDatos();
-    return datos.usuarios.find(u => u.codigo_usuario === codigoUsuario) || null;
+    const usuarios = await cargarUsuarios();
+    return usuarios.find(u => u.codigo_usuario === codigoUsuario) || null;
   } catch (error) {
     console.error('Error al obtener usuario:', error);
     return null;
@@ -260,13 +288,13 @@ export function obtenerUsuarioPorCodigo(codigoUsuario: string): Usuario | null {
 /**
  * Obtiene estadísticas de un usuario
  */
-export function obtenerEstadisticasUsuario(codigoUsuario: string): EstadisticasUsuario | null {
+export async function obtenerEstadisticasUsuario(codigoUsuario: string): Promise<EstadisticasUsuario | null> {
   try {
-    const usuario = obtenerUsuarioPorCodigo(codigoUsuario);
+    const usuario = await obtenerUsuarioPorCodigo(codigoUsuario);
     if (!usuario) return null;
 
-    const datos = cargarDatos();
-    const ordenesUsuario = datos.ordenes.filter(o => o.codigo_usuario === codigoUsuario);
+    const ordenes = await cargarOrdenes();
+    const ordenesUsuario = ordenes.filter(o => o.codigo_usuario === codigoUsuario);
 
     // Para esta demo, simplificamos las estadísticas
     return {

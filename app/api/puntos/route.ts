@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const resultado = actualizarPuntosPorCodigo(codigo_usuario, operacion);
+    const resultado = await actualizarPuntosPorCodigo(codigo_usuario, operacion);
     
     if (resultado.success) {
       return NextResponse.json(resultado);

@@ -3,7 +3,7 @@ import { registrarUsuario, obtenerLeaderboard } from '@/lib/data-server';
 
 export async function GET() {
   try {
-    const usuarios = obtenerLeaderboard();
+    const usuarios = await obtenerLeaderboard();
     return NextResponse.json(usuarios);
   } catch (error) {
     console.error('Error en API usuarios GET:', error);
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const resultado = registrarUsuario(nombre);
+    const resultado = await registrarUsuario(nombre);
     
     if (resultado.success) {
       return NextResponse.json(resultado, { status: 201 });

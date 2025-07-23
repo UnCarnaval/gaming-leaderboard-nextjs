@@ -15,7 +15,7 @@ export async function GET(
       );
     }
 
-    const usuario = obtenerUsuarioPorCodigo(codigo);
+    const usuario = await obtenerUsuarioPorCodigo(codigo);
     
     if (!usuario) {
       return NextResponse.json(
