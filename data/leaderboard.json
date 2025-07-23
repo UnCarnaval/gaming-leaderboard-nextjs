@@ -1,0 +1,58 @@
+{
+  "usuarios": [
+    {
+      "id": "JaVYFhfqi1WNg5hlD6TMP",
+      "nombre": "Rogers",
+      "codigo_usuario": "gi2zwjtmsr",
+      "puntos": 1,
+      "fecha_registro": "2025-07-23T03:05:07.759Z",
+      "fecha_actualizacion": "2025-07-23T03:05:18.076Z"
+    },
+    {
+      "id": "TCvAaDejawbnFP1-V7Tjq",
+      "nombre": "Eliezer",
+      "codigo_usuario": "jnzrnvpj07",
+      "puntos": 0,
+      "fecha_registro": "2025-07-23T03:05:49.302Z",
+      "fecha_actualizacion": "2025-07-23T03:05:49.302Z"
+    },
+    {
+      "id": "XohE8ePQmu_gldXLhXaaw",
+      "nombre": "Alan",
+      "codigo_usuario": "wh11nsl7xn",
+      "puntos": 0,
+      "fecha_registro": "2025-07-23T03:05:57.684Z",
+      "fecha_actualizacion": "2025-07-23T03:05:57.684Z"
+    },
+    {
+      "id": "o8goiAD2Sr1oKzc8x5RfE",
+      "nombre": "Kode",
+      "codigo_usuario": "7wgkthfk32",
+      "puntos": 0,
+      "fecha_registro": "2025-07-23T03:06:04.745Z",
+      "fecha_actualizacion": "2025-07-23T03:06:04.745Z"
+    },
+    {
+      "id": "mE3wT27uwJ4OPYbAufp21",
+      "nombre": "Baddest",
+      "codigo_usuario": "hhw1lascr8",
+      "puntos": 0,
+      "fecha_registro": "2025-07-23T03:06:18.325Z",
+      "fecha_actualizacion": "2025-07-23T03:06:18.325Z"
+    }
+  ],
+  "ordenes": [
+    {
+      "id": "nCJstLiMrkuVZiIsOigU9",
+      "usuario_id": "JaVYFhfqi1WNg5hlD6TMP",
+      "codigo_usuario": "gi2zwjtmsr",
+      "tipo": "suma",
+      "fecha": "2025-07-23T03:05:18.076Z"
+    }
+  ],
+  "configuracion": {
+    "version": "2.0",
+    "creado": "2025-07-23T03:05:02.250Z",
+    "ultima_actualizacion": "2025-07-23T03:06:18.325Z"
+  }
+}
